@@ -1,5 +1,6 @@
 const config = require('../config')
 const axios = require('axios')
+const polyline = require('@mapbox/polyline');
 
 exports.getTruckRoute = (origin, destination) => {
     console.log(origin, destination)
@@ -19,14 +20,21 @@ exports.getTruckRoute = (origin, destination) => {
             obj.destination = data.leg[0].end
             obj.distance = data.summary.distance
             obj.time = {traffic: data.summary.trafficTime, travel: data.summary.travelTime}
-            // obj.pointCoords = obj.maneuver.map(maneuver => {
-                      
-            //     return {'latitude': maneuver.position.latitude, 'longitude': maneuver.position.longitude}
-            // })
-            obj.pointCoords = data.shape.map(point => {
+            obj.pointCoords = []
+            
+            let coordArray = []
+            data.shape.forEach(point => {
                 let coord = point.split(',')
-                return {'latitude': parseFloat(coord[0]), 'longitude': parseFloat(coord[1])}
-            })
+                coordArray[coordArray.length] = [parseFloat(coord[0]), parseFloat(coord[1])]
+                obj.pointCoords.push({ 'latitude': parseFloat(coord[0]), 'longitude': parseFloat(coord[1]) })
+            });
+
+            obj.polylines = polyline.encode(coordArray)
+            // obj.pointCoords = data.shape.map(point => {
+            //     let coord = point.split(',')
+            //     // obj.arr.push([[parseFloat(coord[0]), parseFloat(coord[1])]])
+            //     return {'latitude': parseFloat(coord[0]), 'longitude': parseFloat(coord[1])}
+            // })
             resolve(obj);
         }).catch(err => { console.log(err.response.data.details); reject({ 'status': 'error', 'message': err.response.data }) })
 
