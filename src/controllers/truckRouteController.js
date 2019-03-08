@@ -2,15 +2,15 @@ const config = require('../config')
 const axios = require('axios')
 const polyline = require('@mapbox/polyline');
 
-exports.getTruckRoute = (origin, destination) => {
+exports.getTruckRoute = (origin, destination, truckProfile) => {
     console.log(origin, destination)
     return new Promise((resolve, reject) => {
         if(!origin || !destination) { reject({'status': 'error', 'message': 'Invalid parameters'}) }
-        
+
         let url = `https://route.api.here.com/routing/7.2/calculateroute.json?app_id=${config.HERE_APP_ID}&app_code=${config.HERE_APP_CODE}`
         url += `&waypoint0=geo!${origin}&waypoint1=geo!${destination}`
-        url += `&mode=fastest;truck;traffic:disabled&shippedHazardousGoods=harmfulToWater&routeAttributes=shape`
-        url += `&limitedWeight=30.5&height=4.25`
+        url += `&mode=fastest;truck;traffic:disabled&routeAttributes=shape`
+        url += `&width=${truckProfile.width}&height=${truckProfile.height}&length=${truckProfile.length}`
 
         return axios.get(url).then((res) => {
             const data = res.data.response.route[0]
@@ -21,7 +21,7 @@ exports.getTruckRoute = (origin, destination) => {
             obj.distance = data.summary.distance
             obj.time = {traffic: data.summary.trafficTime, travel: data.summary.travelTime}
             obj.pointCoords = []
-            
+
             let coordArray = []
             data.shape.forEach(point => {
                 let coord = point.split(',')
