@@ -10,8 +10,8 @@ router.get('/api/v1/truck-route/:origin/:destination', (req, res) => {
         width: (parseFloat(req.query.width) > 1) ? parseFloat(req.query.width).toFixed(2) : 2.4,
         length: (parseFloat(req.query.length) > 1) ? parseFloat(req.query.length).toFixed(2) : 7
     }
-    origin = parseFloat(origin[0]).toFixed(2) + ',' + parseFloat(origin[1]).toFixed(2)
-    destination = parseFloat(destination[0]).toFixed(2) + ',' + parseFloat(destination[1]).toFixed(2)
+    origin = parseFloat(origin[0]).toFixed(6) + ',' + parseFloat(origin[1]).toFixed(6)
+    destination = parseFloat(destination[0]).toFixed(6) + ',' + parseFloat(destination[1]).toFixed(6)
 
     getTruckRoute(origin, destination, truckProfile).then((results) => {
         return res.send(results)
