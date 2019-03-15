@@ -46,10 +46,8 @@ exports.getTruckRoute = (origin, destination, truckProfile) => {
 exports.mapMatch = (latLngArr) => {
     return new Promise((resolve, reject) => {
         this.buildGpxFile(latLngArr).then((filepath) => {
-            console.log(filepath)
             return this.convertFileToBuffer(filepath).then((encoded) => {
                 let url = `https://rme.api.here.com/2/matchroute.json?app_id=${config.HERE_APP_ID}&app_code=${config.HERE_APP_CODE}&routemode=car&file=${encoded}`
-                console.log(encoded)
                 return axios.post(url, encoded, {
                     headers: { 'Content-Type': 'application/binary'}
                 }).then(data => {
@@ -82,7 +80,7 @@ exports.buildGpxFile = (latLngArr) => {
         let fileName = new Date().valueOf() + '.gpx'
         fs.writeFile(`${pathName + fileName}`, template, function(err) {
             if(err) { console.log(err); return reject(err) }
-            console.log('the file has been saved')
+            console.log(`${fileName} has been saved`)
             return resolve({'file_path': pathName + fileName})
         })
     })
@@ -96,7 +94,7 @@ exports.convertFileToBuffer = (fileToConvert) => {
                 return reject(err)
             }
         })
-        const encoded = new Buffer(file)//.toString('base64')
+        const encoded = Buffer.from(file)//.toString('base64')
         fs.unlink(fileToConvert.file_path, () => {
             console.log('GPX File deleted')
         }) // delete the file
