@@ -97,6 +97,9 @@ exports.convertFileToBuffer = (fileToConvert) => {
             }
         })
         const encoded = new Buffer(file)//.toString('base64')
+        fs.unlink(fileToConvert.file_path, () => {
+            console.log('GPX File deleted')
+        }) // delete the file
         return resolve(encoded)
     })
 }
