@@ -1,6 +1,6 @@
 const express = require('express');
 let router = express.Router();
-let { getTruckRoute } = require('../controllers/truckRouteController');
+let { getTruckRoute, mapMatch } = require('../controllers/truckRouteController');
 
 router.get('/api/v1/truck-route/:origin/:destination', (req, res) => {
     let origin = req.params.origin.split(',')
@@ -16,6 +16,14 @@ router.get('/api/v1/truck-route/:origin/:destination', (req, res) => {
     getTruckRoute(origin, destination, truckProfile).then((results) => {
         return res.send(results)
     }).catch(err => { console.log(err); return res.send(err) })
+})
+
+router.post('/api/v1/mapMatch', (req, res) => {
+    const coordsArr = req.body.coordinates
+    mapMatch(coordsArr).then((results) => {
+        return res.send(results)
+    }).catch(err => { console.log(err); return res.send(err) })
+
 })
 
 module.exports = router;

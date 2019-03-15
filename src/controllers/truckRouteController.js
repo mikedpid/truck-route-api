@@ -1,6 +1,8 @@
 const config = require('../config')
 const axios = require('axios')
 const polyline = require('@mapbox/polyline');
+const fs = require('fs')
+const path = require('path');
 
 exports.getTruckRoute = (origin, destination, truckProfile) => {
     console.log(origin, destination)
@@ -38,6 +40,64 @@ exports.getTruckRoute = (origin, destination, truckProfile) => {
             resolve(obj);
         }).catch(err => { console.log(err.response.data.details); reject({ 'status': 'error', 'message': err.response.data }) })
 
+    })
+}
+
+exports.mapMatch = (latLngArr) => {
+    return new Promise((resolve, reject) => {
+        this.buildGpxFile(latLngArr).then((filepath) => {
+            console.log(filepath)
+            return this.convertFileToBuffer(filepath).then((encoded) => {
+                let url = `https://rme.api.here.com/2/matchroute.json?app_id=${config.HERE_APP_ID}&app_code=${config.HERE_APP_CODE}&routemode=car&file=${encoded}`
+                console.log(encoded)
+                return axios.post(url, encoded, {
+                    headers: { 'Content-Type': 'application/binary'}
+                }).then(data => {
+                    let obj = data.data.TracePoints.map(point => {
+                        return  {'latitude': point.latMatched, 'longitude': point.lonMatched} 
+                    })
+                    resolve(obj)
+                }).catch(err => {
+                    reject(err.response.data)
+                })
+                return axios.get(url).then(data => { resolve(data.data) }).catch(err => { reject(err.response.data) })
+            })
+            
+        })
+    })
+}
+
+exports.buildGpxFile = (latLngArr) => {
+    return new Promise((resolve, reject) => {
+        const templateStart = `<?xml version="1.0"?>\n<gpx version="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.topografix.com/GPX/1/0" xsi:schemaLocation="http://www.topografix.com/GPX/1/0 http://www.topografix.com/GPX/1/0/gpx.xsd"><trk><trkseg>`
+        const templateEnd = '</trkseg></trk></gpx>'
+        let templateContent = ''
+
+        latLngArr.forEach(obj => {
+            templateContent += `\n<trkpt lat="${obj.latitude}" lon="${obj.longitude}" />`
+        })
+    
+        let template = templateStart + templateContent + templateEnd
+        let pathName = path.join(__dirname, '../tempData/')
+        let fileName = new Date().valueOf() + '.gpx'
+        fs.writeFile(`${pathName + fileName}`, template, function(err) {
+            if(err) { console.log(err); return reject(err) }
+            console.log('the file has been saved')
+            return resolve({'file_path': pathName + fileName})
+        })
+    })
+}
+
+exports.convertFileToBuffer = (fileToConvert) => {
+    return new Promise((resolve, reject) => {
+        const file = fs.readFileSync(fileToConvert.file_path, (err) => {
+            if(err) {
+                console.log(err)
+                return reject(err)
+            }
+        })
+        const encoded = new Buffer(file)//.toString('base64')
+        return resolve(encoded)
     })
 }
 

@@ -4,13 +4,15 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "cd src && nodemon app"
   },
   "author": "Mike",
   "license": "ISC",
   "dependencies": {
     "@mapbox/polyline": "^1.0.0",
     "axios": "^0.18.0",
+    "body-parser": "^1.18.3",
     "express": "^4.16.4"
   }
 }
